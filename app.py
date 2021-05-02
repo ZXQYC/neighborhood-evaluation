@@ -88,7 +88,7 @@ class Database:
         self.db = self.client[dbname]
     def user_gen_new_pass(self):
         ans = ''
-        while (ans is None) or (self.db.users.find_one({'pass': ans})):
+        while not ans or self.db.users.find_one({'pass': ans}):
             ans = randstr()
         return ans
     def user_create_new(self, user):
