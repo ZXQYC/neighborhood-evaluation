@@ -2,6 +2,7 @@ import time
 import random
 import json
 import os
+import requests
 
 import numpy as np
 import pandas as pd
@@ -212,3 +213,10 @@ def page_ynsubmit():
         return "OK"
     except DBException as e:
         return str(e), 400
+
+while True:
+    time.sleep(5*60)
+    try:
+        requests.get('https://neighborhood-evaluation.herokuapp.com/')
+    except:
+        pass
