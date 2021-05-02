@@ -1,0 +1,83 @@
+{% extends 'base_loggedin.html' %}
+
+{% block content_loggedin %}
+
+<script>
+    house1_addr = "{{ house1['CompleteAddress'] }}";
+    house2_addr = "{{ house2['CompleteAddress'] }}";
+    house1_loc = [{{ house1['X'] }}, {{ house1['Y'] }}];
+    house2_loc = [{{ house2['X'] }}, {{ house2['Y'] }}];
+</script>
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkkI4sREYVhm4J7Tiw0ZVihq3BKwYFvSQ&callback=initMap&libraries=&v=weekly"
+  defer
+></script>
+<style type="text/css">
+  #zmap {
+    height: 50%;
+    width: 50%;
+  }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+</style>
+<script src="static/zmap.js"></script>
+<script src="static/yn_submit.js"></script>
+
+Thanks for helping us with our research on neighborhood boundaries! Below, you will find some information about 2 houses.
+Please help us decide if these two houses belong in the same small neighborhood or not!
+Note that the word "house" is used somewhat loosely here - apartments and any other residential place count as houses too.
+Click one of the buttons at the bottom of the page to submit your evaluation.
+If you want to reset the map and Street Views back to their original positions, just refresh the page.
+<hr>
+<h3>House 1: {{ house1['CompleteAddress'] }}</h3>
+<h3>House 2: {{ house2['CompleteAddress'] }}</h3>
+Here's a map containing the two houses: <br>
+<div id="zmap"></div> <br>
+(You can click Satellite on the top left for a satellite view) <br><br>
+<hr>
+Here's an app that allows you to see what it looks like to drive from House 1 to House 2. <br>
+<a target="_blank" style="color:green; text-decoration:underline" href="http://s3.tripgeo.com/dirmap/map.htm?from={{ house1['CompleteAddress'] }}&to={{ house2['CompleteAddress'] }}&fi=3000" title="View Directions and Map">
+    Click to open!
+</a> <br>
+(After opening, click "View Map" on the page to start the app.)
+<hr>
+Here's some more detailed info about these houses. <br>
+<b>
+    Please note that the Google Street Views below often don't point towards the exact house,
+    but should (hopefully) be near the general area of the house.
+</b>
+<hr>
+<h2>House 1</h2>
+{{ house_template_1 }}
+<hr>
+<h2>House 2</h2>
+{{ house_template_2 }}
+<hr>
+<div id="done" style="display:none">
+    <h3>Thanks!</h3>
+    <button onclick="location.href = '/yngen';">Next</button> <br>
+</div>
+<div id="error" style="display:none; color:red">
+    Error: <div id="errormsg"></div> <br>
+    If this problem persists, please let us know.
+</div>
+<div id="choices">
+
+    <h3>Do these two houses belong to the same neighborhood?</h3>
+    <button onclick="submit('same')">Yes</button>
+    <button onclick="submit('diff')">No</button>
+    <button onclick="submit('idk')">Can't tell</button> <br>
+    <h4>If there is something wrong with this question, please select one of the options below:</h4>
+    <button onclick="submit('error_1')">House 1 is not a residential location (but House 2 is)</button> <br>
+    <button onclick="submit('error_2')">House 2 is not a residential location (but House 1 is)</button> <br>
+    <button onclick="submit('error_12')">House 1 and 2 are both not residential locations</button> <br>
+    <button onclick="submit('error_idk')">Something else is wrong (please contact us about the issue!)</button>
+</div>
+<hr><hr>
+
+{% endblock %}

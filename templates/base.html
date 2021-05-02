@@ -1,0 +1,25 @@
+<!doctype html>
+<title>Community Mapping Neighborhood Evaluation</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+<style>
+    .authheader {
+        float: right;
+        display: none;
+    }
+</style>
+<div class="authheader" id="header_logged_out">
+    <a href="/auth/login">Login</a>
+    <a href="/auth/register">Register</a>
+</div>
+<div class="authheader" id="header_logged_in">
+    <a href="/auth/logout">Logout</a>
+</div>
+<script>
+let loggedin = !!Cookies.get('pass');
+if (loggedin) $('#header_logged_in').css('display', 'initial');
+else $('#header_logged_out').css('display', 'initial');
+</script>
+<h1><a href="/" style="color:black">Community Mapping Neighborhood Evaluation</a></h1>
+<hr>
+{% block content %}{% endblock %}

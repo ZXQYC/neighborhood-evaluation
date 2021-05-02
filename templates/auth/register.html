@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div id="create">
+    To create an account, enter a username below. <br>
+    Username: <input type="text" id="name"><br>
+    <button id="submit">Create Account</button>
+    <div id="error" style="color:red"></div>
+</div>
+<div id="success" style="display:none">
+    Success! Here are your login details: <br>
+    Username: <span id="success_user" style="font-family:monospace"></span> <br>
+    Password: <span id="success_pass" style="font-family:monospace"></span> <br>
+    Please save your password!
+</div>
+<script>
+    function register_success(details) {
+        $('#success_user').text(details.user);
+        $('#success_pass').text(details.pass);
+        $('#create').css('display', 'none');
+        $('#success').css('display', 'initial');
+    }
+    function register_fail(details) {
+        $('#error').text(details);
+    }
+    $('#submit').click(() => {
+        const name = $('#name').val();
+        fetch(`/auth/backend/register?user=${name}`).then(res => {
+            if (res.status == 200) {
+                res.json().then(register_success);
+            }
+            else {
+                res.text().then(register_fail);
+            }
+        });
+    });
+</script>
+{% endblock %}

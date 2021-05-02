@@ -1,0 +1,18 @@
+<h3>{{ house['CompleteAddress'] }}</h3>
+{% if house['taxes_found'] %}
+2019 Tax Amount: {{ house['tax_amount'] }} <br>
+Land Value: {{ house['land_value'] }} <br>
+Building Value: {{ house['building_value'] }} <br>
+{% else %}
+Tax/value data unavailable <br>
+{% endif %}
+<br>
+<iframe
+  width="400"
+  height="300"
+  style="border:0"
+  loading="lazy"
+  allowfullscreen
+  src="https://www.google.com/maps/embed/v1/streetview?key=AIzaSyD7laS21G-dKT-qBVbs0kSmQAyUr0IgjoU
+    &location={{ house['Y'] }},{{ house['X'] }}">
+</iframe> <br>

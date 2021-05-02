@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="div_logged_in" style="display:none">
+    {% block content_loggedin %}{% endblock %}
+</div>
+<div id="div_logged_out" style="display:none">
+    Please log in or register to view this page!
+</div>
+<script>
+    if (loggedin) {
+        $('#div_logged_in').css('display','initial');
+    }
+    else {
+        $('#div_logged_out').css('display','initial');
+    }
+</script>
+{% endblock %}

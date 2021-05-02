@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="login">
+    To log in, enter your username and password below: <br>
+    Username: <input type="text" id="user"> <br>
+    Password: <input type="text" id="pass"> <br>
+    <button id="submit">Login</button>
+    <div id="error" style="color:red"></div>
+</div>
+<script>
+    function login_fail(details) {
+        $('#error').text(details);
+    }
+    $('#submit').click(() => {
+        const user = $('#user').val();
+        const pass = $('#pass').val();
+        fetch(`/auth/backend/login?user=${user}&pass=${pass}`).then(res => {
+            if (res.status == 200) {
+                Cookies.set('pass', pass);
+                location.href = '/';
+            }
+            else {
+                res.text().then(login_fail);
+            }
+        });
+    });
+</script>
+{% endblock %}
