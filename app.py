@@ -23,7 +23,7 @@ addr_dict_caddr = {r['CompleteAddress']: r for (i,r) in addr_frame.iterrows()}
 del addr_frame
 # addr_dicts = addr_frame.to_dict('records')
 
-f_agnes = open('agnes.json')
+f_agnes = open('cluster_result.json')
 agnes = json.load(f_agnes)
 f_agnes.close()
 agnes_keys = list(agnes.keys())
