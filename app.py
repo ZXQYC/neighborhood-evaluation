@@ -13,39 +13,49 @@ from markupsafe import Markup
 
 import latlon
 
+# load the mongodb key from .env
 dotenv.load_dotenv()
 MONGO_KEY = os.getenv('MONGO')
 
+# create the app
 app = Flask(__name__)
 
+# read address dataframe
 addr_frame = pd.read_csv('addresses_with_tax.csv')
+# create a dictionary based on the address dataframe, keyed by CompleteAddress
 addr_dict_caddr = {r['CompleteAddress']: r for (i,r) in addr_frame.iterrows()}
+# we don't need addr_frame anymore
 del addr_frame
-# addr_dicts = addr_frame.to_dict('records')
 
-f_agnes = open('cluster_result.json')
-agnes = json.load(f_agnes)
-f_agnes.close()
-agnes_keys = list(agnes.keys())
+# get the cluster result
+f_cres = open('cluster_result.json')
+clust_res = json.load(f_cres)
+f_cres.close()
+clust_res_keys = list(clust_res.keys())
 
 def randPair(node_i, node_j):
-    return [random.choice(agnes[node_i]['addrs']), random.choice(agnes[node_j]['addrs'])]
+    """Get a random pair of houses from two clusters"""
+    return [random.choice(clust_res[node_i]['addrs']), random.choice(clust_res[node_j]['addrs'])]
 
 def randPairs(node_i, node_j, n):
+    """Get several random pairs of houses from two clusters"""
     return [randPair(node_i,node_j) for i in range(n)]
 
 def addrXY(addr):
+    """Get the (longitude,latitude) coordinates for an address"""
     a = addr_dict_caddr[addr]
     return a['X'], a['Y']
 
 def addrDist(addr_1, addr_2):
+    """Finds the distance between two addresses"""
     return latlon.approx_dist(addrXY(addr_1), addrXY(addr_2))
 
 def gen_sample_same():
+    """Generate a random pair of houses from the same cluster"""
     # choose random node
     while True:
-        node_i = random.choice(agnes_keys)
-        if len(agnes[node_i]['addrs']) < 2:
+        node_i = random.choice(clust_res_keys)
+        if len(clust_res[node_i]['addrs']) < 2:
             continue
         # look for 2 houses that are relatively far apart, taking max out of N=3 samples
         pairs = randPairs(node_i, node_i, 3)
@@ -53,12 +63,13 @@ def gen_sample_same():
         return ans
 
 def gen_sample_diff():
+    """Generate a random pair of houses from different, adjacent clusters"""
     while True:
-        node_i = random.choice(agnes_keys)
-        if len(agnes[node_i]['edges']) == 0:
+        node_i = random.choice(clust_res_keys)
+        if len(clust_res[node_i]['edges']) == 0:
             continue
-        node_j = random.choice(agnes[node_i]['edges'])
-        if len(agnes[node_i]['addrs']) < 1 or len(agnes[node_j]['addrs']) < 1:
+        node_j = random.choice(clust_res[node_i]['edges'])
+        if len(clust_res[node_i]['addrs']) < 1 or len(clust_res[node_j]['addrs']) < 1:
             continue
         # look for 2 houses that are relatively close
         pairs = randPairs(node_i, node_j, 3)
@@ -66,6 +77,9 @@ def gen_sample_diff():
         return ans
 
 def gen_sample():
+    """Generate a random sample of two houses,
+    with a 50% chance of being in the same cluster,
+    and a 50% chance of being in adjacent clusters"""
     if random.randrange(2) == 0:
         print("DIFF")
         return gen_sample_diff()
@@ -74,24 +88,36 @@ def gen_sample():
         return gen_sample_same()
 
 def randstr(size=12):
+    """Generate a random string with a given size (default 12)"""
     pos = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     N = len(pos)
     ans = ''.join(pos[random.randrange(N)] for i in range(size))
     return ans
 
 class DBException(Exception):
+    """An exception with our database"""
     pass
 
 class Database:
+    """A class for handling our MongoDB database"""
     def __init__(self, dbname):
+        """Initialize the database, given the database name"""
         self.client = pymongo.MongoClient(MONGO_KEY)
         self.db = self.client[dbname]
     def user_gen_new_pass(self):
+        """Create a random new password that doesn't exist in the database yet"""
         ans = ''
         while not ans or self.db.users.find_one({'pass': ans}):
             ans = randstr()
         return ans
     def user_create_new(self, user):
+        """Create a new user with a given username.
+        Throws an exception if the username is not valid.
+        Input:
+         - user (str): the username
+        Output (dict): A dictionary of the form {'user': username, 'pass': password},
+            where username and password are strings.
+        """
         if len(user) < 2 or len(user) > 32:
             raise DBException('Username length must be between 2 and 32 characters')
         if not user.isalnum():
@@ -104,8 +130,17 @@ class Database:
         self.db.users.insert_one(toinsert)
         return ans
     def user_get(self, details):
+        """Get a user given details about the user. """
         return self.db.users.find_one(details)
     def yn_add(self, a1, a2, guess, ip, pw):
+        """Add someone's guess to the database.
+        Input:
+         - a1 (str): the first address
+         - a2 (str): the second address
+         - guess (str): the guess
+         - ip (str): the IP address the guess originated from
+         - pw (str): the password of the user making the guess
+        """
         userdata = self.user_get({'pass': pw})
         if not userdata:
             raise DBException('Invalid credentials. Please try logging out and back in again.')
@@ -122,10 +157,12 @@ database = Database('datax')
 
 @app.route('/auth/register')
 def page_auth_register():
+    """The frontend for registering a new user"""
     return render_template('auth/register.html')
 
 @app.route('/auth/backend/register')
 def page_auth_backend_register():
+    """The backend for registering a new user"""
     user = request.args.get('user', '')
     try:
         ans = database.user_create_new(user)
@@ -135,10 +172,12 @@ def page_auth_backend_register():
 
 @app.route('/auth/login')
 def page_auth_login():
+    """The login page"""
     return render_template('auth/login.html')
 
 @app.route('/auth/backend/login')
 def page_auth_backend_login():
+    """The backend for logging in"""
     user = request.args.get('user', '')
     pw = request.args.get('pass', '')
     dat = {'user': user, 'pass': pw}
@@ -155,19 +194,23 @@ def page_auth_backend_login():
 
 @app.route('/auth/logout')
 def page_auth_logout():
+    """The logout page"""
     return render_template('auth/logout.html')
 
 @app.route('/')
 def page_slash():
+    """The index page"""
     return render_template('slash.html')
 
 @app.route('/yngen')
 def page_yngen():
+    """The page that generates a new pair of houses to evaluate. Redirects to the evaluation page."""
     choice = gen_sample()
     return redirect("/yn?a1=%s&a2=%s" % (choice[0], choice[1]))
 
 @app.route('/yn')
 def page_yn():
+    """The evaluation page."""
     a1 = request.args.get('a1')
     a2 = request.args.get('a2')
     try:
@@ -187,6 +230,7 @@ def page_yn():
 
 @app.route('/ynsubmit')
 def page_ynsubmit():
+    """The backend for receiving an evaluation from the user"""
     pw = request.args.get('pass', '')
     a1 = request.args.get('a1')
     a2 = request.args.get('a2')

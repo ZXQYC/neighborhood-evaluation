@@ -2,11 +2,13 @@
 import numpy as np
 
 def exact_distance(lat1, lon1, lat2, lon2):
+    """gets the exact distance between (lon1, lat1) and (lon2, lat2)"""
     p = np.pi/180
     a = 0.5 - np.cos((lat2-lat1)*p)/2 + np.cos(lat1*p) * np.cos(lat2*p) * (1-np.cos((lon2-lon1)*p))/2
     return 12742 * np.arcsin(np.sqrt(a))
 
 def exact_dist(pt0, pt1):
+    """gets the exact distance between pt0 and pt1"""
     p = np.pi/180
     a = 0.5 - np.cos((pt1[1]-pt0[1])*p)/2 + np.cos(pt0[1]*p) * np.cos(pt1[1]*p) * (1-np.cos((pt1[0]-pt0[0])*p))/2
     return 12742 * np.arcsin(np.sqrt(a))
@@ -19,6 +21,7 @@ DX = 1
 DY = 1
 
 def set_center(cx, cy, delta=.0001):
+    """Sets the center point (CENTER_X, CENTER_Y) for approx_dist calculation"""
     global CENTER_X, CENTER_Y, DX, DY
     CENTER_X = cx
     CENTER_Y = cy
@@ -28,6 +31,10 @@ def set_center(cx, cy, delta=.0001):
 set_center(CENTER_X, CENTER_Y)
 
 def approx_dist(pt0, pt1):
+    """
+    Find the approximate distance from pt0 to pt1
+    Most accurate when pt0 and pt1 are close to (CENTER_X, CENTER_Y)
+    """
     pt0 = np.array(pt0,dtype=np.float64)
     pt1 = np.array(pt1,dtype=np.float64)
     pt0_single = False
