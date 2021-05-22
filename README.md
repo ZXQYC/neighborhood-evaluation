@@ -14,7 +14,7 @@ Then, you need to create a MongoDB server. I created one at `https://www.mongodb
 ```
 mongodb+srv://<username>:<password>@<somename>.<something>.mongodb.net/<dbname>?retryWrites=true&w=majority
 ```
-Now, create a file in the root directory named `.env`, and put the following in it:
+Now, create a file in the base project directory named `.env`, and put the following in it:
 ```
 MONGO=YOUR_ACCESS_STRING_HERE
 ```
